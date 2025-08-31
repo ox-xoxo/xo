@@ -10,33 +10,52 @@
   <pre id="username">正在获取...</pre>
 
   <script>
-    async function getUserInfo() {
-      // 初始化 Teams SDK
-      await microsoftTeams.app.initialize();
+    microsoftTeams.app.initialize(); // 初始化 Teams SDK
 
-      // 获取 SSO Token（无感）
+    function displayUserInfo(user) {
+      document.getElementById("username").textContent =
+        user.displayName + " (" + user.userPrincipalName + ")";
+    }
+
+    function getUserTokenAndInfo() {
+      // 尝试无感获取 token
       microsoftTeams.authentication.getAuthToken({
         successCallback: async (token) => {
-          // 使用 Graph API 获取用户信息
-          const graphResponse = await fetch("https://graph.microsoft.com/v1.0/me", {
-            headers: {
-              "Authorization": "Bearer " + token
-            }
-          });
-          const user = await graphResponse.json();
-
-          // 显示用户名（显示名或邮箱）
-          document.getElementById("username").textContent =
-            user.displayName + " (" + user.userPrincipalName + ")";
+          try {
+            const graphResponse = await fetch("https://graph.microsoft.com/v1.0/me", {
+              headers: { "Authorization": "Bearer " + token }
+            });
+            const user = await graphResponse.json();
+            displayUserInfo(user);
+          } catch (err) {
+            document.getElementById("username").textContent = "Graph API 获取失败: " + err;
+          }
         },
         failureCallback: (err) => {
-          document.getElementById("username").textContent =
-            "获取 Token 失败: " + err;
+          console.warn("无感 SSO 失败，fallback 弹窗:", err);
+          // fallback 弹窗获取 token
+          microsoftTeams.authentication.authenticate({
+            url: window.location.origin + "/auth-start.html",
+            width: 600,
+            height: 535,
+            successCallback: (result) => {
+              // auth-start.html 返回的 token
+              fetch("https://graph.microsoft.com/v1.0/me", {
+                headers: { "Authorization": "Bearer " + result.token }
+              })
+              .then(res => res.json())
+              .then(user => displayUserInfo(user))
+              .catch(err => document.getElementById("username").textContent = "Graph API 获取失败: " + err);
+            },
+            failureCallback: (err) => {
+              document.getElementById("username").textContent = "获取 Token 失败: " + err;
+            }
+          });
         }
       });
     }
 
-    getUserInfo();
+    getUserTokenAndInfo();
   </script>
 </body>
 </html>
