@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+</head>
+<body>
+  <script>
+    // 完全无感，后台通知 Teams SDK 或父窗口
+    if (window.opener) {
+      window.opener.postMessage("auth-success", "*");
+      window.close();
+    } else if (window.parent !== window) {
+      window.parent.postMessage("auth-success", "*");
+    }
+  </script>
+</body>
+</html>
