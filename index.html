@@ -1,46 +1,260 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <title>Teams SSO 用户显示</title>
-  <script src="https://res.cdn.office.net/teams-js/2.0.0/js/MicrosoftTeams.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teams SSO用户信息</title>
+    <script src="https://statics.teams.cdn.office.net/sdk/v1.11.0/js/MicrosoftTeams.min.js" crossorigin="anonymous"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: #6264A7;
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 22px;
+            font-weight: 500;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .user-info {
+            margin-bottom: 25px;
+        }
+        
+        .info-item {
+            display: flex;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        
+        .info-icon {
+            width: 40px;
+            height: 40px;
+            background: #6264A7;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: white;
+        }
+        
+        .info-text {
+            flex: 1;
+        }
+        
+        .info-label {
+            font-size: 12px;
+            color: #605e5c;
+            margin-bottom: 3px;
+        }
+        
+        .info-value {
+            font-size: 16px;
+            font-weight: 500;
+            color: #323130;
+            word-break: break-word;
+        }
+        
+        .status {
+            background: #f3f2f1;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .success {
+            color: #107c10;
+            border-left: 4px solid #107c10;
+        }
+        
+        .error {
+            color: #d13438;
+            border-left: 4px solid #d13438;
+        }
+        
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #6264A7;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .action-button {
+            background: #6264A7;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 12px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.3s;
+        }
+        
+        .action-button:hover {
+            background: #484a7d;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: #605e5c;
+            border-top: 1px solid #edebe9;
+        }
+    </style>
 </head>
 <body>
-  <h2>当前登录用户：</h2>
-  <pre id="username">正在获取...</pre>
+    <div class="container">
+        <div class="header">
+            <h1>Teams用户信息</h1>
+        </div>
+        
+        <div class="content">
+            <div id="status" class="status">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <div>正在初始化Teams SDK...</div>
+                </div>
+            </div>
+            
+            <div class="user-info">
+                <div class="info-item">
+                    <div class="info-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z"/>
+                        </svg>
+                    </div>
+                    <div class="info-text">
+                        <div class="info-label">用户名</div>
+                        <div id="userName" class="info-value">-</div>
+                    </div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4Zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2Zm13 2.383-4.708 2.825L15 11.105V5.383Zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741ZM1 11.105l4.708-2.897L1 5.383v5.722Z"/>
+                        </svg>
+                    </div>
+                    <div class="info-text">
+                        <div class="info-label">邮箱地址</div>
+                        <div id="userEmail" class="info-value">-</div>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="getTokenButton" class="action-button" style="display: none;">获取用户信息</button>
+        </div>
+        
+        <div class="footer">
+            <p>此应用使用Microsoft Teams单点登录(SSO)功能</p>
+        </div>
+    </div>
 
-  <script>
-    microsoftTeams.app.initialize();
-
-    function displayUserInfo(user) {
-      document.getElementById("username").textContent =
-        user.displayName + " (" + user.userPrincipalName + ")";
-    }
-
-    function loginWithPopup() {
-      microsoftTeams.authentication.authenticate({
-        url: window.location.origin + "/auth-start.html",
-        width: 600,
-        height: 535,
-        successCallback: async (result) => {
-          try {
-            const response = await fetch("https://graph.microsoft.com/v1.0/me", {
-              headers: { "Authorization": "Bearer " + result.token }
+    <script>
+        // 初始化Teams SDK
+        microsoftTeams.initialize(() => {
+            document.getElementById('status').innerHTML = 
+                '<div class="success">Teams SDK初始化成功！点击下方按钮获取用户信息。</div>';
+            document.getElementById('getTokenButton').style.display = 'block';
+        });
+        
+        // 获取用户令牌按钮点击事件
+        document.getElementById('getTokenButton').addEventListener('click', () => {
+            document.getElementById('status').innerHTML = 
+                '<div class="loading"><div class="spinner"></div><div>正在获取用户令牌...</div></div>';
+            
+            // 获取Auth Token
+            microsoftTeams.authentication.getAuthToken({
+                successCallback: (token) => {
+                    document.getElementById('status').innerHTML = 
+                        '<div class="success">用户令牌获取成功！正在解析用户信息...</div>';
+                    
+                    // 解析JWT令牌获取用户信息
+                    try {
+                        const parsedToken = parseJwt(token);
+                        console.log("Token解析结果:", parsedToken);
+                        
+                        // 显示用户信息
+                        document.getElementById('userName').textContent = parsedToken.name || '未知用户';
+                        document.getElementById('userEmail').textContent = parsedToken.preferred_username || parsedToken.upn || '未知邮箱';
+                        
+                        document.getElementById('status').innerHTML = 
+                            '<div class="success">用户信息获取并显示成功！</div>';
+                    } catch (error) {
+                        document.getElementById('status').innerHTML = 
+                            '<div class="error">令牌解析失败: ' + error.message + '</div>';
+                    }
+                },
+                failureCallback: (error) => {
+                    document.getElementById('status').innerHTML = 
+                        '<div class="error">获取用户令牌失败: ' + error + '</div>';
+                }
             });
-            const user = await response.json();
-            displayUserInfo(user);
-          } catch (err) {
-            document.getElementById("username").textContent = "Graph API 获取失败: " + err;
-          }
-        },
-        failureCallback: (err) => {
-          document.getElementById("username").textContent = "登录失败: " + err;
+        });
+        
+        // JWT解析函数
+        function parseJwt(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                throw new Error('无效的JWT令牌');
+            }
         }
-      });
-    }
-
-    // 页面加载直接弹窗登录
-    loginWithPopup();
-  </script>
+    </script>
 </body>
 </html>
