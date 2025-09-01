@@ -9,7 +9,7 @@
   <style>
     body { font-family: Arial, sans-serif; text-align: center; padding: 2rem; }
     #message{font-size:18px; margin-bottom:20px;}
-    #elastic{display:flex; justify-content:center; gap:6px;}
+    #elastic{display:flex; justify-content:center; gap:6px; display:none;}
     #elastic div{width:10px; height:10px; background:#ef4444; border-radius:50%; animation:scale 0.6s infinite alternate;}
     #elastic div:nth-child(2){animation-delay:0.2s}
     #elastic div:nth-child(3){animation-delay:0.4s}
@@ -31,7 +31,7 @@
     @keyframes spin {
       0%   { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
-}
+    }
   </style>
 </head>
 <body>
@@ -81,10 +81,12 @@
     async function detectAndRedirect() {
       const results = await Promise.all(targets.map(testFetch));
 
+      // 只在找到有效 URL 时才跳转
       const working = results.find(r => r.ok);
       if (working) {
         window.location.href = working.url;
       } else {
+        // 所有 URL 都无效时显示维护文字和弹跳小点
         document.getElementById("message").textContent = "系统维护中，请稍后再试。";
         document.getElementById("elastic").style.display = "flex"; 
       }
@@ -94,11 +96,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
