@@ -1,85 +1,64 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8">
   <title>状态检测</title>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; padding: 2rem; }
-    #message{font-size:18px; margin-bottom:20px;}
-    #loading {
-      width: 40px;
-      height: 40px;
-      border: 4px solid #ddd;
-      border-top-color: #3b82f6;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: 0 auto;
+    body { font-family: Arial,sans-serif; text-align:center; padding:2rem;}
+    #message{font-size:18px;margin-bottom:20px;}
+    #loading{
+      width:40px;height:40px;border:4px solid #ddd;border-top-color:#3b82f6;
+      border-radius:50%;animation:spin 1s linear infinite;margin:0 auto;
     }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-    #elastic { display: none; justify-content: center; gap: 6px; margin-top: 10px; }
-    #elastic div { width: 10px; height: 10px; background: #ef4444; border-radius: 50%; animation: scale 0.6s infinite alternate; }
-    #elastic div:nth-child(2){animation-delay:0.2s}
-    #elastic div:nth-child(3){animation-delay:0.4s}
-    @keyframes scale { from { transform: scale(1); } to { transform: scale(1.6); } }
+    @keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+    #elastic{display:none;justify-content:center;gap:6px;margin-top:10px;}
+    #elastic div{width:10px;height:10px;background:#ef4444;border-radius:50%;animation:scale 0.6s infinite alternate;}
+    #elastic div:nth-child(2){animation-delay:0.2s;}
+    #elastic div:nth-child(3){animation-delay:0.4s;}
+    @keyframes scale{from{transform:scale(1);}to{transform:scale(1.6);}}
   </style>
 </head>
 <body>
   <div id="message">正在检测网络状态，请稍候...</div>
   <div id="loading"></div>
-  <div id="elastic">
-    <div></div><div></div><div></div>
-  </div>
+  <div id="elastic"><div></div><div></div><div></div></div>
 
-  <!-- 保留页面强制刷新逻辑 -->
+  <!-- 页面强制刷新 -->
   <script>
     if (!window.location.href.includes("forceReload")) {
-      window.location.href = window.location.href + (window.location.href.includes("?") ? "&" : "?") + "forceReload=" + Date.now();
+      window.location.href = window.location.href + (window.location.href.includes("?")?"&":"?")+"forceReload="+Date.now();
     }
   </script>
 
   <script>
     const targets = [
-      "https://nd11-4go66o6g8f541149-1349994615.tcloudbaseapp.com/#/pages/index/index",
-      "https://nd1188.s3.us-west-004.backblazeb2.com/index.html#/pages/index/index",
-      "https://dgh8t9e98z90v.cloudfront.net/#/pages/index/index",
-      "https://nd113-6gjy9lxh867a0395-1349994615.tcloudbaseapp.com/#/pages/index/index",
-      "https://nd881.blob.core.windows.net/www/index.html#/pages/index/index"
+      "https://znd11-4go66o6g8f541149-1349994615.tcloudbaseapp.com/#/pages/index/index",
+      "https://znd1188.s3.us-west-004.backblazeb2.com/index.html#/pages/index/index",
+      "https://zdgh8t9e98z90v.cloudfront.net/#/pages/index/index",
+      "https://znd113-6gjy9lxh867a0395-1349994615.tcloudbaseapp.com/#/pages/index/index",
+      "https://znd881.blob.core.windows.net/www/index.html#/pages/index/index"
     ];
-    const TIMEOUT = 3000;
 
-    // 用 Image 对象检测 URL 是否可访问
-    function checkURL(url) {
-      return new Promise(resolve => {
-        let done = false;
-        const img = new Image();
-        const timer = setTimeout(() => {
-          if (!done) { done = true; resolve(false); }
-        }, TIMEOUT);
-        img.onload = () => { if (!done) { done = true; clearTimeout(timer); resolve(true); } };
-        img.onerror = () => { if (!done) { done = true; clearTimeout(timer); resolve(false); } };
-        img.src = url + "?t=" + Date.now();
-      });
-    }
+    // 并行跳转尝试（浏览器端可靠）
+    let redirected = false;
 
-    async function detectAndRedirect() {
-      for (let url of targets) {
-        const ok = await checkURL(url);
-        if (ok) {
-          window.location.href = url;
-          return; // 找到有效 URL，立即跳转
+    for (let url of targets) {
+      setTimeout(() => {
+        if (!redirected) {
+          window.location.href = url; // 尝试跳转
+          redirected = true;
         }
-      }
-      // 全部无效，显示维护提示
-      document.getElementById("message").textContent = "系统维护中，请稍后再试。";
-      document.getElementById("elastic").style.display = "flex";
-      document.getElementById("loading").style.display = "none";
+      }, 0);
     }
 
-    detectAndRedirect();
+    // 如果全部失败，5秒后显示维护中
+    setTimeout(() => {
+      if (!redirected) {
+        document.getElementById("message").textContent = "系统维护中，请稍后再试。";
+        document.getElementById("elastic").style.display = "flex";
+        document.getElementById("loading").style.display = "none";
+      }
+    }, 5000);
   </script>
 </body>
 </html>
-
