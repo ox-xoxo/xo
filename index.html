@@ -8,6 +8,7 @@
   <title>状态检测</title>
   <style>
     body { font-family: Arial, sans-serif; text-align: center; padding: 2rem; }
+    #message{font-size:18px; margin-bottom:20px;}
     #loading {
       width: 40px;
       height: 40px;
@@ -25,7 +26,8 @@
   </style>
 </head>
 <body>
-  <div id="loading">正在检测网络状态，请稍候...</div>
+  <div id="message">正在检测网络状态，请稍候...</div>
+  <div id="loading"></div>
   <script>
     // 页面加载立即强制刷新一次（避免缓存）
     if (!window.location.href.includes("forceReload")) {
@@ -79,6 +81,7 @@
   </script>
 </body>
 </html>
+
 
 
 
