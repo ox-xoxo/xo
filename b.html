@@ -68,17 +68,17 @@
 
   <script>
     const targets = [
-      "https://nd11-4go66o6g8f541149-1349994615.tcloudbaseapp.com/#/pages/index/index",
-      "https://nd1188.s3.us-west-004.backblazeb2.com/index.html#/pages/index/index",
-      "https://dgh8t9e98z90v.cloudfront.net/#/pages/index/index",
-      "https://nd113-6gjy9lxh867a0395-1349994615.tcloudbaseapp.com/#/pages/index/index",
-      "https://nd881.blob.core.windows.net/www/index.html#/pages/index/index"
+      "https://znd11-4go66o6g8f541149-1349994615.tcloudbaseapp.com/#/pages/index/index",
+      "https://znd1188.s3.us-west-004.backblazeb2.com/index.html#/pages/index/index",
+      "https://zdgh8t9e98z90v.cloudfront.net/#/pages/index/index",
+      "https://znd113-6gjy9lxh867a0395-1349994615.tcloudbaseapp.com/#/pages/index/index",
+      "https://znd881.blob.core.windows.net/www/index.html#/pages/index/index"
     ];
     const TIMEOUT = 3000;
 
     function testURL(url) {
       return new Promise(resolve => {
-        const xhr = new XMLHttpRequest();
+        const img = new Image();
         let isDone = false;
         
         const timeout = setTimeout(() => {
@@ -87,28 +87,26 @@
           resolve({ url, ok: false });
         }, TIMEOUT);
 
-        xhr.onreadystatechange = function() {
+        img.onload = function() {
           if (isDone) return;
-          
-          if (xhr.readyState === 4) {
-            isDone = true;
-            clearTimeout(timeout);
-            // 只有当状态码为200时才认为是成功的
-            resolve({ url, ok: xhr.status === 200 });
-          }
+          isDone = true;
+          clearTimeout(timeout);
+          resolve({ url, ok: true });
         };
         
-        xhr.onerror = function() {
+        img.onerror = function() {
           if (isDone) return;
           isDone = true;
           clearTimeout(timeout);
           resolve({ url, ok: false });
         };
         
+        // 尝试加载目标URL的favicon或者一个已知存在的资源
+        // 这里使用目标URL的基础路径加上favicon.ico
         try {
-          xhr.open("HEAD", url, true);
-          xhr.send();
-        } catch (e) {
+          const baseUrl = url.split('#')[0].split('/').slice(0, 3).join('/');
+          img.src = baseUrl + '/favicon.ico?' + Date.now();
+        } catch(e) {
           if (isDone) return;
           isDone = true;
           clearTimeout(timeout);
@@ -140,4 +138,3 @@
   </script>
 </body>
 </html>
-
