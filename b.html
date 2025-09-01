@@ -58,11 +58,11 @@
 <body>
 
   <div id="loading">
-    z正在检测网络状态，请稍候...
+    正在检测网络状态，请稍候...
     <div id="spinner"></div>
   </div>
 
-  <div id="maintenance">系z统维护中，请稍后再试。</div>
+  <div id="maintenance">系统维护中，请稍后再试。</div>
   <div id="elastic">
     <div></div><div></div><div></div>
   </div>
@@ -76,38 +76,34 @@
 
   <script>
     const targets = [
-      "https://znd11-4go66o6g8f541149-1349994615.tcloudbaseapp.com/#/pages/index/index",
-      "https://znd1188.s3.us-west-004.backblazeb2.com/index.html#/pages/index/index",
-      "https://zdgh8t9e98z90v.cloudfront.net/#/pages/index/index",
-      "https://znd113-6gjy9lxh867a0395-1349994615.tcloudbaseapp.com/#/pages/index/index",
-      "https://znd881.blob.core.windows.net/www/index.html#/pages/index/index"
+      "https://nd11-4go66o6g8f541149-1349994615.tcloudbaseapp.com/#/pages/index/index",
+      "https://nd1188.s3.us-west-004.backblazeb2.com/index.html#/pages/index/index",
+      "https://dgh8t9e98z90v.cloudfront.net/#/pages/index/index",
+      "https://nd113-6gjy9lxh867a0395-1349994615.tcloudbaseapp.com/#/pages/index/index",
+      "https://nd881.blob.core.windows.net/www/index.html#/pages/index/index"
     ];
-    const TIMEOUT = 3000;
-
-    function testFetch(url) {
-      return new Promise(resolve => {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => {
-          controller.abort();
-          resolve(false);
-        }, TIMEOUT);
-
-        fetch(url, { method: "GET", mode: "no-cors", signal: controller.signal })
-          .then(() => { clearTimeout(timeout); resolve(true); })
-          .catch(() => { clearTimeout(timeout); resolve(false); });
-      });
-    }
+    const TIMEOUT = 3000; // 单个 URL 超时 3 秒
 
     async function detectAndRedirect() {
+      let redirected = false;
+
       for (const url of targets) {
-        const ok = await testFetch(url);
-        if (ok) {
-          window.location.href = url; // 有效 URL 立即跳转
-          return;
+        try {
+          await Promise.race([
+            fetch(url, { method: "GET", mode: "no-cors" }),
+            new Promise((_, reject) => setTimeout(() => reject("timeout"), TIMEOUT))
+          ]);
+          if (!redirected) {
+            redirected = true;
+            window.location.href = url; // 有响应立即跳转
+            return;
+          }
+        } catch {
+          // 当前 URL 无响应，继续下一个
         }
       }
 
-      // 全部无效，显示维护中 + 弹跳动画
+      // 全部无响应，显示维护中 + 弹跳动画
       document.getElementById("loading").style.display = "none";
       document.getElementById("maintenance").style.display = "block";
       document.getElementById("elastic").style.display = "flex";
@@ -117,4 +113,3 @@
   </script>
 </body>
 </html>
-
