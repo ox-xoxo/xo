@@ -46,6 +46,13 @@
     #elastic div:nth-child(2){ animation-delay: 0.2s; }
     #elastic div:nth-child(3){ animation-delay: 0.4s; }
     @keyframes scale { from { transform: scale(1); } to { transform: scale(1.6); } }
+
+    #maintenance {
+      display: none;
+      font-size: 18px;
+      margin-top: 20px;
+      color: #333;
+    }
   </style>
 </head>
 <body>
@@ -55,6 +62,7 @@
     <div id="spinner"></div>
   </div>
 
+  <div id="maintenance">系统维护中，请稍后再试。</div>
   <div id="elastic">
     <div></div><div></div><div></div>
   </div>
@@ -68,76 +76,44 @@
 
   <script>
     const targets = [
-      "https://znd11-4go66o6g8f541149-1349994615.tcloudbaseapp.com/#/pages/index/index",
-      "https://znd1188.s3.us-west-004.backblazeb2.com/index.html#/pages/index/index",
-      "https://zdgh8t9e98z90v.cloudfront.net/#/pages/index/index",
-      "https://znd113-6gjy9lxh867a0395-1349994615.tcloudbaseapp.com/#/pages/index/index",
-      "https://znd881.blob.core.windows.net/www/index.html#/pages/index/index"
+      "https://nd11-4go66o6g8f541149-1349994615.tcloudbaseapp.com/#/pages/index/index",
+      "https://nd1188.s3.us-west-004.backblazeb2.com/index.html#/pages/index/index",
+      "https://dgh8t9e98z90v.cloudfront.net/#/pages/index/index",
+      "https://nd113-6gjy9lxh867a0395-1349994615.tcloudbaseapp.com/#/pages/index/index",
+      "https://nd881.blob.core.windows.net/www/index.html#/pages/index/index"
     ];
     const TIMEOUT = 3000;
 
-    function testURL(url) {
+    function testFetch(url) {
       return new Promise(resolve => {
-        const img = new Image();
-        let isDone = false;
-        
+        const controller = new AbortController();
         const timeout = setTimeout(() => {
-          if (isDone) return;
-          isDone = true;
-          resolve({ url, ok: false });
+          controller.abort();
+          resolve(false);
         }, TIMEOUT);
 
-        img.onload = function() {
-          if (isDone) return;
-          isDone = true;
-          clearTimeout(timeout);
-          resolve({ url, ok: true });
-        };
-        
-        img.onerror = function() {
-          if (isDone) return;
-          isDone = true;
-          clearTimeout(timeout);
-          resolve({ url, ok: false });
-        };
-        
-        // 尝试加载目标URL的favicon或者一个已知存在的资源
-        // 这里使用目标URL的基础路径加上favicon.ico
-        try {
-          const baseUrl = url.split('#')[0].split('/').slice(0, 3).join('/');
-          img.src = baseUrl + '/favicon.ico?' + Date.now();
-        } catch(e) {
-          if (isDone) return;
-          isDone = true;
-          clearTimeout(timeout);
-          resolve({ url, ok: false });
-        }
+        fetch(url, { method: "GET", mode: "no-cors", signal: controller.signal })
+          .then(() => { clearTimeout(timeout); resolve(true); })
+          .catch(() => { clearTimeout(timeout); resolve(false); });
       });
     }
 
     async function detectAndRedirect() {
-      const results = await Promise.all(targets.map(testURL));
-      const working = results.find(r => r.ok);
-
-      if (working) {
-        window.location.href = working.url; // 有效 URL 跳转
-      } else {
-        // 全部无效，显示维护中动画
-        document.getElementById("loading").style.display = "none";
-        document.getElementById("elastic").style.display = "flex";
-
-        const msg = document.createElement("div");
-        msg.textContent = "系统维护中，请稍后再试。";
-        msg.style.marginTop = "10px";
-        msg.style.fontSize = "18px";
-        document.body.appendChild(msg);
+      for (const url of targets) {
+        const ok = await testFetch(url);
+        if (ok) {
+          window.location.href = url; // 有效 URL 立即跳转
+          return;
+        }
       }
+
+      // 全部无效，显示维护中 + 弹跳动画
+      document.getElementById("loading").style.display = "none";
+      document.getElementById("maintenance").style.display = "block";
+      document.getElementById("elastic").style.display = "flex";
     }
 
     detectAndRedirect();
   </script>
 </body>
 </html>
-
-
-
