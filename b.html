@@ -9,22 +9,27 @@
   <style>
     body { font-family: Arial, sans-serif; text-align: center; padding: 2rem; }
 
-    /* Spinner 样式 */
+    /* loading spinner + 文本 */
     #loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 1.2rem;
+      color: #555;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    #spinner {
       width: 40px;
       height: 40px;
       border: 4px solid #ddd;
       border-top-color: #3b82f6;
       border-radius: 50%;
       animation: spin 1s linear infinite;
-      margin: 0 auto 20px auto;
     }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* 弹跳小点动画，只在维护中显示 */
+    /* 弹跳小点动画 */
     #elastic {
       display: none;
       justify-content: center;
@@ -44,7 +49,12 @@
   </style>
 </head>
 <body>
-  <div id="loading"></div>
+
+  <div id="loading">
+    正在检测网络状态，请稍候...
+    <div id="spinner"></div>
+  </div>
+
   <div id="elastic">
     <div></div><div></div><div></div>
   </div>
@@ -90,6 +100,7 @@
         // 全部无效，显示维护中动画
         document.getElementById("loading").style.display = "none";
         document.getElementById("elastic").style.display = "flex";
+
         const msg = document.createElement("div");
         msg.textContent = "系统维护中，请稍后再试。";
         msg.style.marginTop = "10px";
