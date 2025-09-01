@@ -37,7 +37,7 @@
 <body>
   <div id="message">正在检测网络状态，请稍候...</div>
   <div id="loading"></div>
-  <div id="elastic">
+  <div id="elastic" style="display:none;">
     <div></div><div></div><div></div>
   </div>
   <script>
@@ -86,7 +86,7 @@
         window.location.href = working.url;
       } else {
         document.getElementById("message").textContent = "系统维护中，请稍后再试。";
-        document.getElementById("elastic").style.visibility = "visible";
+        document.getElementById("elastic").style.display = "flex"; 
       }
     }
 
@@ -94,6 +94,7 @@
   </script>
 </body>
 </html>
+
 
 
 
