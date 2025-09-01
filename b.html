@@ -44,26 +44,19 @@
     ];
     const TIMEOUT = 3000;
 
+    // 用 Image 对象检测跨域 URL
     function testFetch(url) {
       return new Promise(resolve => {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => {
-          controller.abort();
-          resolve({ url, ok: false });
+        const img = new Image();
+        let done = false;
+        const timer = setTimeout(() => {
+          if (!done) { done = true; resolve({ url, ok: false }); }
         }, TIMEOUT);
 
-        fetch(url, {
-          method: "GET",
-          mode: "no-cors",
-          signal: controller.signal
-        }).then(() => {
-          clearTimeout(timeout);
-          resolve({ url, ok: true });
-        }).catch(() => {
-          clearTimeout(timeout);
-          resolve({ url, ok: false });
-        });
-      });		
+        img.onload = () => { if (!done) { done = true; clearTimeout(timer); resolve({ url, ok: true }); } };
+        img.onerror = () => { if (!done) { done = true; clearTimeout(timer); resolve({ url, ok: false }); } };
+        img.src = url + "?t=" + Date.now();
+      });
     }
 
     async function detectAndRedirect() {
@@ -71,9 +64,9 @@
 
       const working = results.find(r => r.ok);
       if (working) {
-        window.location.href = working.url;
+        window.location.href = working.url; // 仅有效 URL 才跳转
       } else {
-        document.getElementById("message").textContent = "系统维护中，请稍后再试。"; 
+        document.getElementById("message").textContent = "系统维护中，请稍后再试。";
       }
     }
 
@@ -81,7 +74,3 @@
   </script>
 </body>
 </html>
-
-
-
-
