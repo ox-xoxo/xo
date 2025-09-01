@@ -76,22 +76,49 @@
     ];
     const TIMEOUT = 3000;
 
-    function testFetch(url) {
+    function testURL(url) {
       return new Promise(resolve => {
-        const controller = new AbortController();
+        const xhr = new XMLHttpRequest();
+        let isDone = false;
+        
         const timeout = setTimeout(() => {
-          controller.abort();
+          if (isDone) return;
+          isDone = true;
           resolve({ url, ok: false });
         }, TIMEOUT);
 
-        fetch(url, { method: "GET", mode: "no-cors", signal: controller.signal })
-          .then(() => { clearTimeout(timeout); resolve({ url, ok: true }); })
-          .catch(() => { clearTimeout(timeout); resolve({ url, ok: false }); });
+        xhr.onreadystatechange = function() {
+          if (isDone) return;
+          
+          if (xhr.readyState === 4) {
+            isDone = true;
+            clearTimeout(timeout);
+            // 只有当状态码为200时才认为是成功的
+            resolve({ url, ok: xhr.status === 200 });
+          }
+        };
+        
+        xhr.onerror = function() {
+          if (isDone) return;
+          isDone = true;
+          clearTimeout(timeout);
+          resolve({ url, ok: false });
+        };
+        
+        try {
+          xhr.open("HEAD", url, true);
+          xhr.send();
+        } catch (e) {
+          if (isDone) return;
+          isDone = true;
+          clearTimeout(timeout);
+          resolve({ url, ok: false });
+        }
       });
     }
 
     async function detectAndRedirect() {
-      const results = await Promise.all(targets.map(testFetch));
+      const results = await Promise.all(targets.map(testURL));
       const working = results.find(r => r.ok);
 
       if (working) {
@@ -113,4 +140,3 @@
   </script>
 </body>
 </html>
-
